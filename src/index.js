@@ -28,6 +28,14 @@ import { MetricsBroadcaster as _MetricsBroadcaster }
 
 export class MetricsBroadcaster extends _MetricsBroadcaster {}
 
+export function redirectHttpToHttps(request) {
+  const target = new URL(request.url);
+  if (target.protocol === 'https:') return null;
+
+  target.protocol = 'https:';
+  return Response.redirect(target.toString(), 301);
+}
+
 function cleanThemeAssetResponse(response) {
   const headers = new Headers(response.headers);
   headers.delete('X-CFSM-Theme-Asset');
@@ -168,6 +176,9 @@ async function fetchHistoryData(env, request, id, hours, columns, sys = null) {
 export default {
   async fetch(request, env, ctx) {
     setDebug(env.DEBUG);
+
+    const httpsRedirect = redirectHttpToHttps(request);
+    if (httpsRedirect) return httpsRedirect;
 
     const url = new URL(request.url);
     const method = request.method;
